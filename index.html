@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+  <style>
+    [style*="--aspect-ratio"] > :first-child {
+      width: 100%;
+    }
+    [style*="--aspect-ratio"] > img {  
+      height: auto;
+    } 
+    @supports (--custom:property) {
+      [style*="--aspect-ratio"] {
+        position: relative;
+      }
+      [style*="--aspect-ratio"]::before {
+        content: "";
+        display: block;
+        padding-bottom: calc(100% / (var(--aspect-ratio)));
+      }  
+      [style*="--aspect-ratio"] > :first-child {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 100%;
+      }  
+    }
+
+    body {
+      background-color: #264653;
+      margin: 0;
+      padding: 0;
+      border: 0;
+      font-size: 100%;
+      font: inherit;
+      vertical-align: baseline;
+    }
+
+    #kasmet {
+      height: 100px;
+      width: 100%;
+      background-color: #2a9d8f;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 6vw;
+      color: #e9c46a;
+    }
+
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      padding: 5px;
+    }
+
+    .item {
+      margin: 5px;
+    }
+  </style>
+
+  <body>
+    <script type="module">
+      import { h, render } from 'https://cdn.skypack.dev/preact';
+      import htm from "https://cdn.skypack.dev/htm";
+      import Optimus from "https://cdn.skypack.dev/optimus-js";
+      import QRCode from "https://cdn.skypack.dev/qr-base64";
+
+      const codeSize = 192;
+      const optimus = new Optimus(1580030173, 59260789, 1163945558);
+
+      const kasmeti = [
+        { kasmet: "Мн здраве", url: "https://www.youtube.com/embed/scif2vfg1ug" },
+        { kasmet: "Мн любов", url: "https://www.youtube.com/embed/gv9GrETDsmc" },
+        { kasmet: "Мн имоти", url: "https://www.youtube.com/embed/PBwAxmrE194" },
+        { kasmet: "Щастлива година", url: "https://www.youtube.com/embed/YUPA0C60YDE" },
+        { kasmet: "Мн пътуванки", url: "https://www.youtube.com/embed/80cylx6ESQM" },
+        { kasmet: "Мн парички", url: "https://www.youtube.com/embed/fep_yJTOgjM" },
+        { kasmet: "Мн да върви работата", url: "https://www.youtube.com/embed/iIGKlicb8n0" },
+        { kasmet: "Чил година", url: "https://www.youtube.com/embed/UhBoUU66X7w" },
+        { kasmet: "Мн успехи", url: "https://www.youtube.com/embed/pco91kroVgQ" },
+        { kasmet: "Сила и увереност", url: "https://www.youtube.com/embed/li91V6m_OR0" },
+        { kasmet: "Парти година", url: "https://www.youtube.com/embed/_un9PYsE1_g" },
+        { kasmet: "Мн сексове", url: "https://www.youtube.com/embed/LKS1XSiyGYQ" },
+        { kasmet: "Късметлийска година", url: "https://www.youtube.com/embed/JW4iRcv2JGc" },
+        { kasmet: "Здрав ум и добри решения", url: "https://www.youtube.com/embed/LoF_a0-7xVQ" },
+        { kasmet: "Кото си пожелаеш", url: "https://www.youtube.com/embed/KyypsBZCEvw" },
+      ];
+
+
+      const baseUrl = window.location.origin + window.location.pathname;
+
+      function qrUrl(idx) {
+        return baseUrl + "?k=" + optimus.encode(idx);
+      }
+
+      const html = htm.bind(h);
+
+      const queryParams = new URLSearchParams(location.search);
+      const term = queryParams.get("k");
+
+      const id = term && optimus.decode(term);
+      const selectedItem = kasmeti.hasOwnProperty(id) && kasmeti[id];
+
+      const ItemQR = ({url}) => {
+        const base64 = QRCode(url, {
+          width: codeSize,
+          height: codeSize,
+          colorDark : "#000000",
+          colorLight : "#ffffff",
+        });
+        return html`<img src="${base64}" width="${codeSize}" height="${codeSize}" />`;
+      }
+
+      const KasmetBig = ({item}) => (html`
+        <div id="kasmet">
+          ${item.kasmet}
+        </div>
+        <div style="--aspect-ratio: 16/9; border: #2a9d8f 10px solid;">
+          <iframe width="1920" height="1080" src="${item.url}" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen>
+          </iframe>
+        </div>
+      `);
+
+      const KasmetItem = ({idx, item}) => {
+        function relocate() {
+          window.location = qrUrl(idx);
+        }
+        return html`
+          <div class="item" onClick=${relocate}><${ItemQR} url="${qrUrl(idx)}" /></div>
+        `;
+      };
+
+      const List = () => (html`
+        <div class="container">
+          ${kasmeti.map((k, idx) => html`<${KasmetItem} idx="${idx}" item=${k} />`)}
+        </div>
+      `);
+
+      const Main = () => (
+        html`
+          <div class="app">
+            ${ selectedItem ? html`<${KasmetBig} item=${selectedItem} />` : html`<${List} />` }
+          </div>`
+        );
+
+      render(html`<${Main} />`, document.body);
+    </script>
+  </body>
+</html>
